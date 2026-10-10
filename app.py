@@ -86,7 +86,7 @@ def home():
         rows = session.execute(
             f"SELECT fetched_at, observation_time, temperature, apparent_temperature, humidity, "
             f"is_day, precipitation, cloud_cover, pressure, windspeed, wind_direction "
-            f"FROM {TABLE} WHERE name = %s LIMIT 100",
+            f"FROM {TABLE} WHERE name = %s LIMIT 200",
             (city,)
         )
         data[city] = list(rows)

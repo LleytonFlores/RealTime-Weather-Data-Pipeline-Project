@@ -25,7 +25,7 @@ params = {
 
 print(f"Producer 2 started: {city_name} -> {topic_name}\n")
 
-# fetch and send every 60 seconds
+# fetch and send every 10 seconds
 while True:
     try:
         response = requests.get(url, params=params, timeout=10)
@@ -56,4 +56,4 @@ while True:
     except requests.RequestException as e:
         print(f"Failed to fetch weather data: {e}")
 
-    time.sleep(60)
+    time.sleep(10)
