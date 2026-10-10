@@ -330,8 +330,10 @@ bin/kafka-topics.sh --describe --topic weather-manila --bootstrap-server localho
 bin/kafka-topics.sh --describe --topic weather-tokyo --bootstrap-server localhost:9092
 ```
 
-### Step 3.4: Show the topics are separate
-Run the producers and watch each topic in its own consumer, the same way as FA2's consumers.
+### Step 3.4: Run the producers and 4 consumers
+Each producer gets **2 consumers** on its topic, the same as FA2's two consumers on one topic. This shows two things:
+- **The topics are separate:** Manila consumers only see Manila data, and Tokyo consumers only see Tokyo data.
+- **Each topic can be read independently:** both consumers on a topic receive every message.
 
 **Terminal 3: PRODUCER 1**
 ```bash
@@ -345,22 +347,42 @@ cd ~/Documents/CurrentTerm/DataScience2/Weather-Pipeline
 python3 producer_tokyo.py
 ```
 
-**Terminal 5: CONSUMER MANILA**
+**Terminal 5: MANILA CONSUMER 1**
 ```bash
 cd $KAFKA_HOME
 bin/kafka-console-consumer.sh --topic weather-manila --bootstrap-server localhost:9092 --from-beginning
 ```
 
-**Terminal 6: CONSUMER TOKYO**
+**Terminal 6: MANILA CONSUMER 2**
+```bash
+cd $KAFKA_HOME
+bin/kafka-console-consumer.sh --topic weather-manila --bootstrap-server localhost:9092 --from-beginning
+```
+
+**Terminal 7: TOKYO CONSUMER 1**
 ```bash
 cd $KAFKA_HOME
 bin/kafka-console-consumer.sh --topic weather-tokyo --bootstrap-server localhost:9092 --from-beginning
 ```
-**Expected:** the Manila consumer shows only Manila JSON, and the Tokyo consumer shows only Tokyo JSON.
 
-Leave both producers running. You can close the two consumers (Ctrl+C) once you have screenshots.
+**Terminal 8: TOKYO CONSUMER 2**
+```bash
+cd $KAFKA_HOME
+bin/kafka-console-consumer.sh --topic weather-tokyo --bootstrap-server localhost:9092 --from-beginning
+```
 
-**Screenshot:** Kafka running, topic creation, `--list`/`--describe`, each producer, each consumer.
+**Expected:**
+
+| Consumer | Shows |
+|---|---|
+| Manila 1 and Manila 2 | The same Manila JSON messages, and no Tokyo |
+| Tokyo 1 and Tokyo 2 | The same Tokyo JSON messages, and no Manila |
+
+A new message appears in both consumers of its topic about every 60 seconds.
+
+Leave both producers running. You can close the four consumers (Ctrl+C) once you have screenshots, or keep them open for the video.
+
+**Screenshot:** Kafka running, topic creation, `--list`/`--describe`, each producer, all four consumers. Arrange the two consumers of each topic side by side, as in FA2.
 
 ---
 
@@ -494,7 +516,7 @@ spark.streams.awaitAnyTermination()
 ```
 
 ### Step 4.2: Run the Spark job
-**Terminal 7: SPARK**
+**Terminal 9: SPARK**
 ```bash
 cd ~/Documents/CurrentTerm/DataScience2/Weather-Pipeline
 spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.13:4.2.0 spark_weather_stream.py
@@ -520,7 +542,7 @@ Open **http://localhost:4040**. If it isn't there, try 4041, because a pyspark s
 ## Part 5: Store the Data in Cassandra
 
 ### Step 5.1: Start the Cassandra container
-**Terminal 8: CASSANDRA.** Open Docker Desktop first.
+**Terminal 10: CASSANDRA.** Open Docker Desktop first.
 ```bash
 docker start cassandra
 docker logs -f cassandra
@@ -711,7 +733,7 @@ if __name__ == "__main__":
 ```
 
 ### Step 6.2: Run Flask
-**Terminal 9: FLASK**
+**Terminal 11: FLASK**
 ```bash
 cd ~/Documents/CurrentTerm/DataScience2/Weather-Pipeline
 flask --app app run --host=0.0.0.0 --port 5001 --debug
@@ -730,10 +752,11 @@ Open **http://localhost:5001**. The Mac uses port 5001 because AirPlay takes 500
 |---|---|
 | Producer 1 | Terminal 3: `producer_manila.py` output |
 | Producer 2 | Terminal 4: `producer_tokyo.py` output |
-| Topics working | Terminal 2: `--list` / `--describe`, plus Terminals 5–6 consumers |
+| Topics working | Terminal 2: `--list` / `--describe` |
+| Consumers (2 per producer) | Terminals 5–6 (Manila) and 7–8 (Tokyo) |
 | Spark dashboard | localhost:4040, the Jobs, SQL and Structured Streaming tabs |
-| Spark processing | Terminal 7: console batches and "saved to Cassandra" lines |
-| Cassandra data | Terminal 8: `DESCRIBE TABLE` and `SELECT` results |
+| Spark processing | Terminal 9: console batches and "saved to Cassandra" lines |
+| Cassandra data | Terminal 10: `DESCRIBE TABLE` and `SELECT` results |
 | Flask webpage | localhost:5001 |
 
 ---
@@ -749,7 +772,7 @@ Open **http://localhost:5001**. The Mac uses port 5001 because AirPlay takes 500
 
 ### What the video must show
 1. **Live source:** the Open-Meteo URLs in the browser, and the producers printing `Sent to ...`.
-2. **Kafka receiving:** the console consumers on both topics.
+2. **Kafka receiving:** the 4 console consumers, 2 on each topic, receiving the same messages.
 3. **Spark processing:** terminal batches and the localhost:4040 Structured Streaming tab.
 4. **Cassandra storing:** `SELECT` in cqlsh, run twice to show the count increasing.
 5. **Flask output:** localhost:5001 refreshing with new rows.
